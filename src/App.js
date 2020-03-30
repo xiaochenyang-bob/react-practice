@@ -1,45 +1,56 @@
 import React from 'react';
 import './App.css';
-import MemberImage from './MemberImage';
 import Loading from './Loading';
 import { getMembers, getRepos } from './GitHubApi';
-import GitHubRepoCard from './GitHubRepoCard';
+import GitHubReposList from './GitHubReposList';
+import GitHubMembersList from './GitHubMembersList';
 
 class App extends React.Component{
   constructor(props){
     super(props)
     this.state={
-      members: [],
       repos: [],
-      loading: true,
+      members: [],
+      loading: false,
     };
+
+    this.handleClickReposButton = this.fetchRepos.bind(this);
+    this.handleClickMembersButton = this.fetchMembers.bind(this);
   }
   //methods
-  async componentDidMount(){
-    // let members = await getMembers('emberjs');
-    // let repos = await getRepos('emberjs');
-    let [members, repos] = await Promise.all([
-      getMembers('emberjs'),
-      getRepos('emberjs')
-    ]);
+  
+  //a syntax to remember 'this', experimental
+  // fetchRepos = async () => {
+  //   this.setState({loading: true});
+  //   let repos = await getRepos('emberjs');
+  //   this.setState({repos: repos, loading: false});
+  // }
 
-    this.setState({members: members, repos: repos, loading: false});
+  async fetchRepos() {
+    this.setState({loading: true});
+    let repos = await getRepos('emberjs');
+    this.setState({repos: repos, loading: false, members:[]});
   }
+
+  async fetchMembers(){
+    this.setState({loading: true});
+    let members = await getMembers('emberjs');
+    this.setState({members: members, loading: false, repos:[]});
+  }
+
   render(){
     return (
-      //JSX goes here
-      //use curly braces for dynamic variables
       <div>
-        <p>{this.state.members.length} Members of Ember.js</p>
+         {/* {this.state.loading ? <Loading />: ""} */}
+         {this.state.loading && <Loading />}
+         <button onClick={this.handleClickReposButton}>Repos</button>
+         <button onClick={this.handleClickMembersButton}>Members</button>
         <div>
-          {this.state.loading ? <Loading /> : this.state.members.map((member)=>{
-            return <MemberImage member={member} key={member.id} />
-          })}
+
         </div>
         <div>
-          {this.state.loading ? <Loading /> : this.state.repos.map((repo)=>{
-            return <GitHubRepoCard repo={repo} key={repo.id} />
-          })}
+          <GitHubReposList repositories={this.state.repos} />
+          <GitHubMembersList members={this.state.members} />
         </div>
       </div>
     );
